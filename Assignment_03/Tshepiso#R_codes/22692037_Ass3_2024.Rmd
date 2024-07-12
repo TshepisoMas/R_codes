@@ -1,0 +1,486 @@
+---
+title: "Assgnment3_2024_GLM"
+author: "22692037_Tshepiso Mashiane"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r }
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+
+#Data Load.
+LabourForce<- read.csv("C:/Users/36076724/Desktop/BSC Hons Statistic/STA4813_GLM/2024/Assignment_03/LabourForce.csv")
+
+LabourForce <- LabourForce %>%
+  mutate(
+    Q13GENDER = factor(Q13GENDER, levels = c(1, 2), labels = c("Male", "Female")),
+    Q15POPULATION = factor(Q15POPULATION, levels = c(1, 2, 3, 4), labels = c("African/Black", "Coloured", "Indian/Asian", "White")),
+    Q24APDWRK = factor(Q24APDWRK, levels = c(1, 2), labels = c("Yes", "No")),
+    Q16MARITALSTATUS = factor(Q16MARITALSTATUS, levels = c(1, 2, 3, 4, 5), labels = c("Married", "Living together", "Widow/Widower", "Divorced/Separated", "Never married")),
+    Education_Status = factor(Education_Status, levels = c(1, 2, 3, 4, 5, 6, 7), labels = c("No schooling", "Less than primary completed", "Primary completed", "Secondary not completed", "Secondary completed", "Tertiary", "Other")),
+    Province = factor(Province, levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9), labels = c("Western Cape", "Eastern Cape", "Northern Cape", "Free State", "KwaZulu-Natal", "North West", "Gauteng", "Mpumalanga", "Limpopo")),
+    Geo_type_code = factor(Geo_type_code, levels = c(1, 2, 3), labels = c("Urban", "Traditional", "Farms"))
+  )
+summary(LabourForce)
+str(LabourForce)
+head(LabourForce)
+
+```
+
+# a.
+
+```{r}
+# Filter data for household members aged 15 years and older.
+data_filtered <- LabourForce %>% filter(Q14AGE >= 15)
+print(data_filtered)
+```
+
+```{r}
+#Load neccesarry packages
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+
+# Create the plot.
+ggplot(data_filtered, aes(x = Q14AGE, y = as.factor(Q24APDWRK))) +
+  geom_jitter(width = 0.2, height = 0.1, alpha = 0.5) +
+  labs(x = "Age", y = "Paid Work (1 = Yes, 2 = No)",
+       title = "Relationship between Age and Paid Work") +
+  theme_minimal()
+```
+
+### Why the Plot Does Not Work Well Discrete Nature of Paid Work:
+
+-The Paid_work variable is binary (1 for Yes, 2 for No). Plotting this against a continuous variable like age results in a large amount of overplotting, especially when many individuals share the same age.
+
+-Jittering: To make individual points visible, jittering was applied. However, this can sometimes make the plot appear cluttered and less interpretable.
+
+-Limited Variation: If most household members fall into a few age categories or if the majority do not engage in paid work, the plot may not reveal much useful information.
+
+### Alternative Approaches To better understand the relationship, we can consider the following alternative approaches:
+
+-Box Plot or Violin Plot: These can help show the distribution of ages within the groups of those who did and did not do paid work.
+
+-Summarize Data: Create summary statistics or bar plots to show the proportion of individuals engaged in paid work across different age groups.
+
+-Logistic Regression: Perform a logistic regression analysis to quantify the relationship between age and the likelihood of doing paid work.
+
+# b.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+ # Inspect the column names
+colnames(LabourForce)
+
+# Filter data to include only complete cases for the variables of interest and age 15 or older
+data_filtered <- LabourForce %>%
+  filter(Q14AGE >= 15) %>%
+  select(Q13GENDER, Q15POPULATION, Q16MARITALSTATUS, Q24APDWRK, Education_Status, Province, Geo_type_code, Q14AGE) %>%
+  na.omit()
+
+# Inspect the first few rows to ensure correct filtering
+
+# Fit a binary logistic regression model
+model <- glm(Q24APDWRK ~ Q13GENDER + Q15POPULATION + Q16MARITALSTATUS + Q14AGE + Education_Status  + Province + Geo_type_code,
+             data = data_filtered, 
+             family = binomial ())
+
+# Summary of the model
+summary(model)
+```
+
+### Reporting Resudualdevience and degree of fredom
+
+```{r}
+# Extract residual deviance and degrees of freedom
+residual_deviance <- model$deviance
+degrees_of_freedom <- model$df.residual
+
+# Print the results
+cat("Residual Deviance:", residual_deviance, "\n")
+cat("Degrees of Freedom:", degrees_of_freedom, "\n")
+
+
+```
+
+
+
+The residual deviance and associated degrees of freedom can provide insight into the model fit. The residual deviance is a measure of how well the model fits the data; lower values indicate a better fit though in our case we realise that the deviance is higher therefore the is no better fit.However, residual deviance alone is not sufficient to conclude whether the model fits well. It should be complemented with other goodness-of-fit measures, such as:
+
+-AIC (Akaike Information Criterion): A lower AIC indicates a better-fitting model. -Pseudo R-squared: Provides a measure of how well the model explains the variability in the response variable. -Residuals Analysis: Inspecting residuals for patterns or systematic deviations. . The degrees of freedom represent the number of observations minus the number of estimated parameters.
+
+(Assessing Model Fit) To determine if the model fits the data well, we can compare the residual deviance to a chi-squared distribution with the corresponding degrees of freedom. If the residual deviance is significantly higher than the expected chi-squared value, the model may not fit the data well.
+
+Conclusion While residual deviance and degrees of freedom are useful for assessing model fit, they should be part of a broader set of diagnostics and considerations when evaluating the model's performance.
+
+
+# c.
+
+```{r}
+ #Perform stepwise model selection using AIC
+best_model <- step(model)
+
+# Summary of the best model
+summary(best_model)
+
+residual_deviance_best_model <- best_model$deviance
+degrees_of_freedom_best_model <- best_model$df.residual
+
+cat("Residual Deviance of the Best Model:", residual_deviance_best_model, "\n")
+cat("Degrees of Freedom of the Best Model:", degrees_of_freedom_best_model, "\n")
+cat("AIC of the Best Model:", AIC(best_model), "\n")
+```
+
+
+# d.
+```{r}
+# Calculate the deviance residuals and fitted values
+deviance_residuals <- residuals(best_model, type = "deviance")
+fitted_values <- fitted(best_model)
+
+# Create a dataframe with deviance residuals and fitted values for plotting
+plot_data <- data.frame(DevianceResiduals = deviance_residuals, FittedValues = fitted_values)
+
+# Plot deviance residuals against fitted values
+ggplot(plot_data, aes(x = FittedValues, y = DevianceResiduals)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess", color = "blue", se = FALSE) +
+  labs(title = "Deviance Residuals vs Fitted Values",
+       x = "Fitted Values",
+       y = "Deviance Residuals") +
+  theme_minimal()
+```
+
+
+# Interpretation of Deviance Residuals vs. Fitted Values Plot
+The plot above shows the deviance residuals against the fitted values from the regression model. 
+
+X-axis
+Deviance residuals measure the goodness of fit for a logistic regression model. They can be positive or negative, with large absolute values indicating observations that are poorly predicted by the model.
+
+y-axis
+Fitted values represent the predicted probabilities of the response variable (in this case, Paid work).
+
+# Comment
+The plot, residuals seem to be symmetric around zero, suggesting no severe systematic deviations. The residuals should ideally be symmetrically distributed around zero across the range of fitted values.
+
+The plot does not display obvious patterns or trends in the residuals, indicating the model may fit the data reasonably well.A good model fit would show no clear pattern in the residuals.
+
+The residuals should have a consistent spread across different levels of fitted values.
+Therefore in this plot, the spread of residuals seems consistent, but the residuals are denser near the extremes of the fitted values (0 and 1).
+
+Points far from the bulk of the data could be outliers or influential observations.
+The plot does not show any extreme outliers, which suggests there are no single points unduly influencing the model.
+
+
+IncConclusion the plot suggests that the model fits the data reasonably well, with no clear patterns in the residuals. The residuals' symmetry around zero and consistent spread across fitted values indicate that the model does not exhibit major issues.
+
+The density of residuals near the extremes might suggest that the model is highly confident about predictions in those regions, which could be checked further.
+
+Additional diagnostic checks, such as checking for heteroscedasticity, multicollinearity, or influential points using other plots or tests, could further validate the model fit.
+This initial visual inspection of the residual plot does not reveal severe violations of model assumptions, suggesting that the logistic regression model provides a reasonable fit for the data. However, it is always good practice to perform additional diagnostic tests for a comprehensive evaluation.
+
+# e.
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Function to create binned residuals
+binned_residuals <- function(model, bins = 10) {
+  # Calculate fitted values and residuals
+  fitted_values <- fitted(model)
+  residuals <- residuals(model, type = "deviance")
+  
+  # Create a data frame with fitted values and residuals
+  data <- data.frame(fitted_values, residuals)
+  
+  # Create bins and calculate average fitted values and residuals in each bin
+  data_binned <- data %>%
+    mutate(bin = cut(fitted_values, breaks = bins)) %>%
+    group_by(bin) %>%
+    summarise(
+      avg_fitted = mean(fitted_values),
+      avg_residual = mean(residuals)
+    )
+  
+  return(data_binned)
+}
+
+# Create binned residuals
+binned_residuals <- binned_residuals(best_model, bins = 10)
+
+# Plot the binned residuals
+ggplot(binned_residuals, aes(x = avg_fitted, y = avg_residual)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +
+  labs(title = "Binned Residual Plot",
+       x = "Average Fitted Values",
+       y = "Average Deviance Residuals") +
+  theme_minimal()
+
+```
+
+# Interpretation of the Binned Residual Plot
+
+The above binned residual plot shows the average deviance residuals against the average fitted values. This type of plot helps in assessing the goodness-of-fit of the model by highlighting any systematic patterns in the residuals.
+
+Average Devience Residuals:
+The y-axis represents the average deviance residuals within each bin of fitted values.
+Ideally, these should be close to zero if the model fits well.
+
+Average Fitted Values:
+The x-axis represents the average predicted probabilities (fitted values) for each bin.
+
+Blue Line (Loess Smoother):
+The blue line represents a local regression (loess) smoother that shows the general trend of the residuals across the fitted values.Ideally, this line should be flat around zero if the model is well-fitted, which in our case is not clearly flat and that is indication that the model is not well-fitted.
+
+Red Line (Zero Line):
+The red dashed line represents zero on the y-axis, which serves as a reference for evaluating the residuals.
+
+# Interpretation
+
+Pattern in Residuals:
+There is a clear pattern in the residuals, with high average residuals at both low and high fitted values, and lower residuals around the middle range of fitted values.
+This suggests that the model may not be capturing some aspects of the data well, particularly at the extremes.
+
+Deviation of residuas from Zero:
+The average deviance residuals deviate from zero, especially at the tails (low and high fitted values).This indicates that the model tends to under-predict (positive residuals) at low fitted values and over-predict (negative residuals) at high fitted values.
+
+U-shaped Pattern:
+The U-shaped pattern suggests a potential issue with the model, such as missing interactions or non-linear relationships between predictors and the response variable.
+
+In conclusion the clear pattern and deviation from zero in the residuals suggest that the model may not be fully capturing the underlying structure of the data. The U-shaped pattern implies that there might be non-linear relationships or interactions between the predictors that the model has not accounted for.
+
+We sholud consider including interaction terms or exploring non-linear relationships in the model. Additional diagnostics, such as checking for multicollinearity or re-evaluating the model specification, might be necessary to improve the fit. 
+
+The binned residual plot indicates that there is room for improving the model, especially in how it handles the tails of the distribution of the fitted values.
+
+
+# f.
+```{r}
+# Function to create binned residuals by age
+binned_residuals_age <- function(model, age_variable, bins = 10) {
+  # Calculate fitted values and residuals
+  fitted_values <- fitted(model)
+  residuals <- residuals(model, type = "deviance")
+
+  # Create a data frame with age, fitted values, and residuals
+  data <- data.frame(age_variable, fitted_values, residuals)
+  
+  # Create bins and calculate average age and residuals in each bin
+  data_binned <- data %>%
+    mutate(bin = cut(age_variable, breaks = bins)) %>%
+    group_by(bin) %>%
+    summarise(
+      avg_age = mean(age_variable),
+      avg_residual = mean(residuals)
+    )
+  
+  return(data_binned)
+}
+
+# Create binned residuals by age
+binned_residuals_age <- binned_residuals_age(best_model, data_filtered$Q14AGE, bins = 10)
+
+# Plot the binned residuals by age
+ggplot(binned_residuals_age, aes(x = avg_age, y = avg_residual)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +
+  labs(title = "Binned Residual Plot by Age",
+       x = "Average Age",
+       y = "Average Deviance Residuals") +
+  theme_minimal()
+```
+
+# Interpretation of the Binned Residual Plot by Age
+The binned residual plot by age shows the average deviance residuals against the average age. This plot helps in identifying whether the model's fit varies across different age groups.
+
+
+Average Deviance Residuals:
+The y-axis represents the average deviance residuals within each bin of age.
+Ideally, these residuals should be centered around zero if the model fits well across all age groups.
+
+Average Age:
+The x-axis represents the average age within each bin.
+
+Blue Line (Loess Smoother):
+The blue line represents a local regression (loess) smoother that shows the general trend of the residuals across different age groups. Ideally, this line should be close to the zero line, indicating no systematic lack of fit.
+
+Red Line (Zero Line):
+The red dashed line represents zero on the y-axis, serving as a reference for evaluating the residuals.
+
+#Interpretation
+Pattern in Residuals:
+The plot shows a distinct pattern in the residuals with a dip below zero around the age of 30, rising above zero around the age of 60, peaking, and then declining.This suggests that the model's fit varies across different age groups, with certain ages showing systematic deviations from the model's predictions.
+
+Deviation from Zero:
+The residuals deviate significantly from zero, particularly for younger and older age groups.
+This indicates that the model tends to under-predict (negative residuals) around the age of 30 and over-predict (positive residuals) around the age of 60 and above.
+
+Non-linear Relationship:
+The curved pattern suggests a non-linear relationship between age and the response variable (Paid work) that is not fully captured by the model.The dip and rise indicate that the effect of age on the likelihood of being in paid work is more complex than the model accounts for.
+
+In conclusion the pattern in the residuals indicates that the model does not fit equally well across all age groups.The significant deviations from zero suggest that the relationship between age and paid work is not fully linear or is not adequately modeled by the current predictors.
+
+We sholud consider including polynomial terms for age or age interactions with other variables to better capture the non-linear relationship.Reevaluate the model specification to account for potential age-related effects that are currently not modeled.
+
+The binned residual plot by age highlights areas where the model could be improved to better fit the data, particularly by addressing the non-linear relationship between age and the likelihood of being in paid work.
+
+
+# g.
+```{r}
+# Extract deviance residuals from the best model
+deviance_residuals <- residuals(best_model, type = "deviance")
+
+# Create a QQ plot
+qqnorm(deviance_residuals)
+qqline(deviance_residuals, col = "red", lwd = 2)
+```
+
+# Interpretation of the Normal Q-Q Plot
+
+Theoretical Quantiles:
+
+The x-axis represents the theoretical quantiles from a standard normal distribution (expected values if the data were normally distributed).
+Sample Quantiles:
+
+The y-axis represents the actual quantiles of the residuals from your model.
+
+The red line is the reference line where the points would fall if the residuals were perfectly normally distributed. If the residuals are normally distributed, the points should lie approximately along this line.
+
+# Interpretation
+Points that closely follow the red line suggest that the residuals are approximately normally distributed.Significant deviations from the line indicate departures from normality.
+
+The plot shows clear deviations from the red line, especially at the tails (both ends of the distribution).The points at the lower end (left side) and upper end (right side) of the plot deviate significantly from the red line.
+
+The residuals form an S-shaped curve, which is a common indication of a non-normal distribution.
+This pattern suggests that the residuals are heavier-tailed than a normal distribution (leptokurtic).
+
+Points that are far from the line may indicate the presence of outliers.
+The extreme points on both ends indicate that there are outliers in the residuals.
+Conclusion
+
+The residuals from your model do not follow a normal distribution, as evidenced by the deviations from the red line. The S-shaped pattern and heavy tails suggest that the residuals are not adequately modeled by a normal distribution.
+
+This departure from normality may affect the validity of inference (e.g., confidence intervals, hypothesis tests) that rely on the normality assumption. It's important to check other model assumptions and consider potential transformations or different modeling approaches to address non-normality.
+
+In conclusion the Normal Q-Q plot indicates that the residuals are not normally distributed, suggesting that the model might need adjustments or alternative approaches to better fit the data and meet the assumptions of normality.
+
+
+# h.
+```{r}
+# Extract leverage values from the best model
+leverage_values <- hatvalues(best_model)
+
+# Create a data frame for plotting
+leverage_data <- data.frame(Index = 1:length(leverage_values), Leverage = leverage_values)
+
+# Plot the leverages
+ggplot(leverage_data, aes(x = Index, y = Leverage)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 2 * mean(leverage_values), linetype = "dashed", color = "red") +
+  labs(title = "Leverage Values",
+       x = "Index",
+       y = "Leverage") +
+  theme_minimal()
+```
+
+# Interpretation of the Leverage Plot
+The leverage plot above displays the leverage values for each observation in the dataset. Leverage is a measure of how far an observation is from the mean of the predictor variables. High leverage points can have a significant impact on the fit of the model.
+
+The y-axis represents the leverage values of each observation.
+Leverage values range between 0 and 1, with higher values indicating more influence on the model's fit.
+
+The x-axis represents the index of the observations in the dataset.
+Each point corresponds to an observation's leverage value.
+
+The red dashed line is a reference line for leverage values.
+A common threshold for identifying high leverage points is 2(𝑝+1)/𝑛
+
+where: 
+𝑝is the number of predictors and 
+𝑛is the number of observations.
+
+# Interpretation
+
+Most observations have low leverage values, clustering around the lower part of the plot.
+There are several points with higher leverage values that stand out from the bulk of the data.
+
+Observations with leverage values significantly above the red reference line are considered high leverage points. These points have a greater potential to influence the model's fit and parameter estimates.
+
+High leverage points can disproportionately affect the regression coefficients, potentially leading to a less robust model.It is essential to investigate these high leverage points to understand their influence and determine if they are valid data points or outliers that need special consideration.
+
+The presence of high leverage points suggests that certain observations have a strong influence on the model's fit.It is important to examine these points to ensure they are not unduly affecting the model's results.
+
+Investigate high leverage points to determine if they are legitimate data points or if they are errors/outliers that should be addressed. we shold Consider diagnostic measures such as Cook's distance to further assess the influence of these points on the model.Potentially refit the model excluding high leverage points to see how the results change, ensuring the robustness of the model.
+
+In conclusion the leverage plot indicates that while most observations have low leverage, there are a number of high leverage points that warrant further investigation to ensure the integrity and robustness of the fitted model.
+
+# i.
+
+```{r}
+# Load the necessary library
+if (!require(ResourceSelection)) {
+  install.packages("ResourceSelection")
+  library(ResourceSelection)
+}
+
+# Fit the binary logistic regression model again for clarity
+best_model <- glm(Q24APDWRK ~ Q13GENDER + Q15POPULATION + Q16MARITALSTATUS + Q14AGE + Education_Status + Province + Geo_type_code,
+                  data = data_filtered, 
+                  family = binomial())
+
+# Compute the Hosmer-Lemeshow test
+hl_test <- hoslem.test(best_model$y, fitted(best_model), g = 10)
+
+# Print the results
+hl_test
+```
+Conclusion:
+Since our p-value is less than 0.05 we reject the null hypothesis and conclude that the model does not fits the data well.
+
+
+# j.Interpretation of Each Coefficient
+-Intercept: A household member aged 15 years and older who
+in the last week did any work for a wage, salary,
+commission or any payment in-kind is expected to have/earned 1.903548 units/R/$  when all other predictors are at their reference levels are zeros. 
+
+-Q13GENDERmale: Holding constant the effect of all other variables a male household member aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earned  0.309081 units/R/$ higher/increase as compared to females. 
+
+-Q15POPULATIONcoloured: Holding constant the effect of all other variables a coloured  household member aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earned 0.039863  units/R/$ higher/increase as compared to other populations. 
+
+-Q15POPULATIONIndian/Asian: Holding constant the effect of all other variables a Indian/Asian  household member aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn 0.318566 units/R/$ higher/increase as compared to other populations.
+
+-Q15POPULATIONWhite:Holding constant the effect of all other variables a Indian/Asian  household member aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn  0.616904 units/R/$ higher/increase as compared to other populations. 
+
+-Q16MARITALSTATUSliving together: Holding constant the effect of all other variables a  household member that is living together with their partner and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn  0.368157 units/R/$ lower/decrease as compared to other people with different marital status. 
+
+-Q16MARITALSTATUS_widow/ widower:Holding constant the effect of all other variables a  household member that is widow/ widower and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn  1.154962 units/R/$ higher/increase as compared to other people with different marital status. 
+
+-Q16MARITALSTATUS_divorced/separated:Holding constant the effect of all other variables a  household member that divorced/separated and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn  0.054343 units/R/$ higher/increase as compared to other people with different marital status. 
+
+-Q16MARITALSTATUSnever married:Holding constant the effect of all other variables a  household member that  is married and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn  0.572033 units/R/$ higher/increase as compared to other people with different marital status.  
+
+-Q14AGE: Holding constant the effect of all other variables a  household member that  is married and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn 0.007684 units/R/$ higher/increase as compared to other people are 14 years and younger.
+
+-Education_Status_less than primary completed:Holding constant the effect of all other variables a  household member that has Education Status being less than primary completed  and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn 0.710014 units/R/$ lower/decrease as compared to other people with different educational status.
+
+ 
+-Education_Status_primary completed:Holding constant the effect of all other variables a  household member that has Education Status being primary completed  and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn 0.8883674 units/R/$ lower/decrease as compared to other people with different educational status
+
+
+-Education_Status_secondary not completed: Holding constant the effect of all other variables a  household member that has Education Status being secondary not completed and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn 1.181793 units/R/$ lower/decrease as compared to other people with different educational status
+
+
+-Education_Status_secondary completed:  Holding constant the effect of all other variables a  household member that has Education Status being secondary completed and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn 1.894077 units/R/$ lower/decrease as compared to other people with different educational status
+
+-Education_Status_tertiary: Holding constant the effect of all other variables a  household member that has Education Status being tertiary and aged 15 years and older who in the last week did any work for a wage, salary,commission or any payment in-kind is expected to have/earn 2.618660 units/R/$ lower/decrease as compared to other people with different educational status
+
+
