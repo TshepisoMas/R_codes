@@ -1,0 +1,113 @@
+---
+title: "Assignment02_Rmarkdown"
+author: "22692037_Tshepiso Mashiane"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Question3
+
+### Loading the data
+
+```{r}
+library(gridExtra)
+library(ggplot2)
+library(dplyr)
+
+gamma_arrivals1 <- read.csv("C:/Users/36076724/Desktop/BSC Hons Statistic/STA4813_GLM/2024/Assignment_02/gamma_arrivals2.csv", header = TRUE)
+inter_arrival_times <- gamma_arrivals1$Arrivals
+summary(gamma_arrivals1)
+head(gamma_arrivals1)
+
+```
+
+The gamma_arrivals data above contains a set of gamma-ray data consisting of the times between arrivals (inter-arrival times) of 3935 photons in seconds. The inter-arrival times range from 0.112 to 729.135, with a median time of 55.553 seconds and a mean time of 79.935 seconds
+
+### Examine the data
+
+Negative values are invalid for a gamma distribution, hence we need to examine the data to ensure there are no negative values in the data
+
+```{r}
+
+if (any(inter_arrival_times <= 0)) {
+  stop("Negative value detected")
+  
+
+}
+
+```
+
+Since nothing is returned this means there is no negative value detected. Therefore we can continue with our analysis.
+
+#### a.Histogram of the inter-arrival times
+
+```{r}
+ hist(inter_arrival_times, breaks = 50, probability = TRUE, 
+     main = "Histogram of Inter-Arrival Times",
+     xlab = "Inter-Arrival Time (seconds)", ylab = "Density")
+```
+
+Since the data is concentrated around lower arrival time values and has a long tail of higher values,this means the inter-arrival times is right-skewed which is a characteristic of gamma distribution. This suggests that the gamma distribution is a plausible model for the data.
+
+#### b.Estimate the model parameters using the method of maximum likelihood estimation
+
+```{r}
+
+# Define the negative log-likelihood function for the Gamma distribution
+neg_log_likelihood <- function(params, data) {
+  alpha <- params[1]
+  beta <- params[2]
+  
+  # Ensure parameters are positive
+  if (alpha <= 0 || beta <= 0) return(Inf)
+  
+  n <- length(data)
+  
+  # Calculate the log likelihood
+  log_likelihood <- n * (alpha * log(beta) - lgamma(alpha)) + 
+                    (alpha - 1) * sum(log(data)) - beta * sum(data)
+  
+  # Return the negative log likelihood
+  return(-log_likelihood)
+}
+
+# Initial parameter guesses
+initial_params <- c(1, 1)
+
+
+# Optimize the parameters using nlm
+mle_result <- optim(initial_params, neg_log_likelihood, data = inter_arrival_times, 
+                    method = "L-BFGS-B", lower = c(1e-8, 1e-8))
+
+# Extract the estimated parameters
+alpha_hat <- mle_result$par[1]
+beta_hat <- mle_result$par[2]
+
+# Print the estimated parameters
+cat("Estimated alpha:", alpha_hat, "\n")
+cat("Estimated beta:", beta_hat, "\n")
+
+# Define the Gamma density function
+gamma_density <- function(x, alpha, beta) {
+  return((beta^alpha / gamma(alpha)) * x^(alpha - 1) * exp(-beta * x))
+}
+```
+
+#### c. Fitted gamma densities
+
+```{r}
+# Plot the histogram with the fitted Gamma densities
+hist(inter_arrival_times, breaks = 50, probability = TRUE, 
+     main = "Histogram of Inter-Arrival Times with Fitted Gamma Densities",
+     xlab = "Inter-Arrival Time (seconds)", ylab = "Density")
+
+# Generate a sequence of x values for the density plot
+x_values <- seq(min(inter_arrival_times), max(inter_arrival_times), length.out = 1000)
+
+# Plot the fitted Gamma density
+lines(x_values, gamma_density(x_values, alpha_hat, beta_hat), col = "red", lwd = 3)
+```
+
+The fitted gamma density appears to be a reasonable model for the data.
+
+The gamma distribution captures the right-skewed shape of the histogram, and the peak of the fitted density aligns well with the mode of the histogram. While the fit may not be perfect, the gamma distribution seems to be a plausible model for the inter-arrival times of the gamma-rays data.Therefore the fitted gamma density appears to be a reasonable model for the data.
