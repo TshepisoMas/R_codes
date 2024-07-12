@@ -1,0 +1,180 @@
+---
+title: "STA4813 Assignment 01"
+author: "22692037_Tshepiso Mashiane"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  #pdf_document: default
+---
+
+#Loading the Data
+```{r}
+library(readr)
+Machinery_T <- read.csv("C:/Users/36076724/Downloads/Machinery_T.csv")
+summary(Machinery_T)
+head(Machinery_T)
+tail(Machinery_T)
+```
+
+#Exemine the Data
+```{r}
+str(Machinery_T)
+summary(Machinery_T)
+```
+#a. Constructing appropriate graphs and calculating appropriate summary statistics of both
+#Average_Purchase_Price and Tractor_Power individually and then together. 
+# plot the Histogram,Box plot and scatter plot
+```{r}
+library(gridExtra)
+library(ggplot2)
+library(dplyr)
+# Average purchase price Histogram
+average_purchace_price_hist<- ggplot(data=Machinery_T, aes(x=Average_Purchase_Price)) +
+geom_histogram(binwidth = 100000, fill= "skyblue",color= "black") +
+xlab("Average_Purchase_Price") + ylab("frequency") + labs(title = "(Figure 1(a) Histogram of Average_Purchase_Price )")
+print(average_purchace_price_hist)
+
+# Box plot of Average_Purchase_Price
+average_purchase_box <- ggplot(data=Machinery_T, aes(y = Average_Purchase_Price)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(y = "Average Purchase Price (R)") +
+  ggtitle("Figure 1(b) Box Plot of Average Purchase Price")
+print(average_purchase_box)
+
+# Tractor_power Histogram
+Tractor_power_hist <- ggplot(data = Machinery_T, aes(x = Tractor_Power)) +
+  geom_histogram(binwidth = 5,  fill= "skyblue",color= "black") +
+  xlab("Tractor Power") + ylab("Frequency") + labs(title = "(Figure 2(a) Histogram Tractor Power)")
+print(Tractor_power_hist)
+
+
+# Box plot of Tractor_Power
+tractor_power_box <- ggplot(Machinery_T, aes(y = Tractor_Power)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(y = "Tractor Power (kW)") +
+  ggtitle("Figure 2(b) Box Plot of Tractor Power")
+print(tractor_power_box)
+
+#Calculate the Correlation between Tractor_Power and Average_Purchase_Price
+correlation <- cor(Machinery_T$Average_Purchase_Price, Machinery_T$Tractor_Power)
+print(correlation)
+
+# Print the summary statistics
+cat("Summary Statistics for Average Purchase Price:\n")
+print(average_purchase_stats)
+cat("\n")
+
+cat("Summary Statistics for Tractor Power:\n")
+print(tractor_power_stats)
+cat("\n")
+library(ggplot2)
+# Create a combined scatter plot
+combined_plot <- ggplot(Machinery_T, aes(x = Tractor_Power, y = Average_Purchase_Price)) +
+  geom_point(color = "black") +
+  labs(x = "Tractor Power (kW)", y = "Average Purchase Price (R)") +
+  ggtitle("Combined Scatter Plot")
+print(combined_plot)
+```
+#b.Fitting a simple linear regression model with Average_Purchase_Price as the response variable
+#and Tractor_Power as the explanatory variable (Model 1).Also Interpreting the estimate slope coefficient
+#β1.
+# Fit a simple linear regression model
+```{r}
+Model_1 <- lm(Average_Purchase_Price ~ Tractor_Power, data = Machinery_T)
+#summary(model_1)
+summary(Model_1)
+##need to interprete the slope
+
+coef(summary(Model_1))
+cat(" R squared= ",summary(Model_1)$r.squared, "\n",
+    "Residual Standart Error= ",summary(Model_1)$sigma)
+
+#Since the Intercept does not make sense, let subtract the mean from both the response variable and the independent variable
+Machinery_T$Average_Purchase_Price<- Machinery_T$Average_Purchase_Price - mean(Machinery_T$Average_Purchase_Price)
+Machinery_T$Tractor_Power<- Machinery_T$Tractor_Power- mean(Machinery_T$Tractor_Power)
+Model_1a<- lm(Average_Purchase_Price~Tractor_Power, data= Machinery_T)
+summary(Model_1a)
+coef(summary(Model_1a))
+
+#Are all assumptions of the linear regression of the met by the data?
+# Obtain the fitted values and residuals
+fitted_values <- fitted(Model_1)
+residuals <- residuals(Model_1)
+# Create the residual vs fitted values plot to assess the assumption of the constant varience of the residual
+plot(fitted_values, residuals, xlab = "Fitted Values", ylab = "Residuals", main = "Residual vs Fitted Values Plot")
+
+##Linearity assessment:
+#since the residuals are randomly scattered around the horizontal line at zero, it suggests that the linear regression mode_1 captures the linear relationship between the predictors and the response variable reasonably well. This indicates that the assumption of linearity is met.
+
+##Homoscedasticity assessment:
+#In the residual vs fitted values plot, we see a random scatter of points with approximately equal spread above and below zero. This indicates that the variance of the residuals is consistent across the range of fitted values/ predictor variables.
+
+# Obtain the standardized residuals for normality assumption assessment
+std_resid <- rstandard(Model_1)
+# Create the Normal Q-Q plot
+qqnorm(std_resid, xlab = "Theoretical Quantiles", ylab = "Standardized Residuals", main = "Normal Q-Q Plot")
+qqline(std_resid)  
+
+##since there is deviation from the line this indicate departures from normality, such as skewness or heavy tails.
+
+```
+
+
+# c.Creating a new variable logAverage_Purchase_Price, the natural log of Average_Purchase_Price and
+#Fitting Model 2 where logAverage_Purchase_Price is now the response variable and Tractor_Power
+#is still the explanatory variable. Also showing the estimated regression line equation.
+```{r}
+#since the Normality assumption is violated, we now need to transform the data.
+# Create the new variable logAverage_Purchase_Price
+Machinery_T$logAverage_Purchase_Price <- log(Machinery_T$Average_Purchase_Price)
+Model_2 <- lm(logAverage_Purchase_Price ~ Tractor_Power, data = Machinery_T)
+summary(Model_2)
+
+coef(summary(Model_2))
+cat(" R squared= ",summary(Model_2)$r.squared, "\n",
+    "Residual Standart Error= ",summary(Model_2)$sigma)
+#Since the Intercept does not make sense, let subtract the mean from both the response variable and the independent variable
+#Machinery_T$logAverage_Purchase_Price<- Machinery_T$logAverage_Purchase_Price - mean(Machinery_T$logAverage_Purchase_Price)
+#Machinery_T$Tractor_Power<- Machinery_T$Tractor_Power- mean(Machinery_T$Tractor_Power)
+#Model_2a<- lm(Average_Purchase_Price~Tractor_Power, data= Machinery_T)
+#summary(Model_2a)
+#coef(summary(Model_2a))
+
+####I am failing to pribt the fitted model!!~
+
+```
+#d.checking How does logAverage_Purchase_Price change when Tractor_Power increases by 1?
+```{r}
+#relating to the fitted model on c, The logAverage_purchse_price chances by R0.07888 when tractor power increase by 1
+
+```
+
+#e.
+```{r}
+#As Tractor_Power increases by 1, the logAverage_Purchase_Price changes by
+#  log(Y)i= 10.96500600 + 0.07888368(1)=8 11.04388968
+# therefore, Avarage_purchase_price by R57815.14242
+#which is the exp(10.96500600)
+```
+#f.Are linear least squares regression (LLSR) assumptions satisfied in Model 2? Why or why
+#not?
+```{r}
+# Obtain the fitted values and residuals
+fitted_values <- fitted(Model_2)
+residuals <- residuals(Model_2)
+# Create the residual vs fitted values plot to assess the assumption of the constant varience of the residual
+plot(fitted_values, residuals, xlab = "Fitted Values", ylab = "Residuals", main = "Residual vs Fitted Values Plot")
+##Linearity assessment:
+#since the residuals are randomly scattered around the horizontal line at zero, it suggests that the linear regression mode_1 captures the linear relationship between the predictors and the response variable reasonably well. This indicates that the assumption of linearity is met.
+
+##Homoscedasticity assessment:
+#In the residual vs fitted values plot, we see a random scatter of points with approximately equal spread above and below zero. This indicates that the variance of the residuals is consistent across the range of fitted values/ predictor variables.
+
+# Obtain the standardized residuals for normality assumption assessment
+std_resid <- rstandard(Model_2)
+# Create the Normal Q-Q plot
+qqnorm(std_resid, xlab = "Theoretical Quantiles", ylab = "Standardized Residuals", main = "Normal Q-Q Plot")
+qqline(std_resid)  
+
+```
+

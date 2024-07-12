@@ -1,0 +1,334 @@
+---
+title: "Assignment_1 for SSTA4813"
+author: "22692037_Tshepiso Mashiane"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+# **Loading and examining the data.**
+```{r}
+library(readr)
+Machinery_T <- read.csv("C:/Users/36076724/Desktop/BSC Hons Statistic/STA4813_GLM/Machinery.csv_1.csv")
+head(Machinery_T)
+```
+
+
+From the **_head(Machinery_T)_** we learn that each row in the dataset appears to represent a specific tractor with corresponding attributes, such as tractor power, type, associated fruit type, average purchase price, salvage value, average investment, depreciation costs, insurance cost, license costs,  total fixed costs, repair and maintenance costs, fuel costs, and fuel usage.The specific units of measurement for the average investment, depreciation costs, and insurance and license costs columns are represented in a specific South African currency (Rand).
+
+```{r}
+str(Machinery_T)
+```
+We can see that some of the variables, such as the Type_Tractor and Type_Fruit, are factors. Factor
+variables are categorical. Other variables are quantitative. Variables such as Depreciation_Costs, Insurance_Licence_Costs, Interest_Costs, Total_Fixed_Costs , Repair_Maintenance_Costs,Fuel_Costs and Fuel_Usage are continuous while the others are integer valued. We also see the sample size is 27.The expenditure on tractors purchases will vary as per specific tractor with corresponding attributes such as tractor power, type, associated fruit type, average purchase price, salvage value, average investment, depreciation costs, insurance cost, license costs,  total fixed costs, repair and maintenance costs, fuel costs, and fuel usage.
+
+## **Initial Data Analysis**
+```{r}
+summary(Machinery_T)
+```
+For the categorical variables, we get a count of the number of each type that occur, _e.g. Tractor that is of type "2 WD" and is used at/for Orchards_. We notice, for example, that almost half of the tractors are of type _"2 WD" and used at/for Orchards_. This will help us to estimate the effect of a particular Tractor power on the expenditure for Tractor purchase. For the numerical variables, we have eleven summary statistics that are
+sufficient to get a rough idea of the distributions. In particular, we notice that the tractor power ranges over orders of magnitudes. This suggests that I should
+consider the absolute, rather than the relative Average_Purchase_Price.
+
+### **We wish to find/determine a linear model to predict the Average Purchase Price of a tractor**
+##### a.
+```{r}
+library(gridExtra)
+library(ggplot2)
+library(dplyr)
+
+# Average purchase price Histogram
+average_purchace_price_hist<- ggplot(data=Machinery_T, aes(x=Average_Purchase_Price)) +
+geom_histogram(binwidth = 100000, fill= "skyblue",color= "black") +
+xlab("Average_Purchase_Price") + ylab("frequency") + labs(title = "Figure 1(a) Histogram of Average_Purchase_Price ")
+Tractor_power_hist <- ggplot(data = Machinery_T, aes(x = Tractor_Power)) +
+  geom_histogram(binwidth = 5,  fill= "skyblue",color= "black") +
+  xlab("Tractor Power") + ylab("Frequency") + labs(title = "Figure 1(b) Histogram Tractor_Power")
+
+print(average_purchace_price_hist)
+print(Tractor_power_hist)
+```
+Figure 1: Histogram of Average_purchase_price and Tractor_power. Plot a. shows the average purchase price (in _**R**_  ) of a tractor, while plot b. shows the tractor power (in _**KW**_)
+```{r}
+#Summary Statistics
+# Average Purchase Price
+summary(Machinery_T$Average_Purchase_Price)
+# Tractor_power
+summary(Machinery_T$Tractor_Power)
+```
+In _**Figure 1.a**_ and _**1.b**_, we observe that both the _Average purchase price_ and _Tractor power_ exhibit a right-skewed distribution. Analyzing the summary statistics, we find that the mean values are greater than the medians, supporting the conclusion of right-skewness _[(Q3-Median)>(Median-Q1)]_. By examining the histogram in _**Figure 1.a**_, it is evident that the _Average purchase price_ is primarily concentrated around R500000. Similarly, in _**Figure 1.b**_, a significant proportion of _Tractor powers_ are distributed around 50KW, suggesting that a large number of tractor powers are approximately equal to 50KW.
+
+
+
+#### **Similarly**
+```{r}
+# Box plot of Average_Purchase_Price
+average_purchase_box <- ggplot(data=Machinery_T, aes(y = Average_Purchase_Price)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(y = "Average Purchase Price (R)") +
+  ggtitle("Figure 2(a) Box Plot of Average Purchase Price")
+# Box plot of Tractor_Power
+tractor_power_box <- ggplot(Machinery_T, aes(y = Tractor_Power)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(y = "Tractor Power (kW)") +
+  ggtitle("Figure 2(b) Box Plot of Tractor Power")
+
+print(average_purchase_box)
+print(tractor_power_box)
+
+
+```
+
+In _**Figure 2.a**_ and _**2.b**_, we observe that both the _Average purchase price_ and _Tractor power_ exhibit a right-skewed distribution, as evident from the box plot analysis. By examining the box plot in _**Figure 2.a**_, it becomes evident that the distribution of Average purchase price is skewed to the right. While the box plot for _Tractor power_ in _**Figure 2.b**_  does not clearly show the skewness, we can infer it from the summary statistics where the mean value is greater than the median value _[(Q3-Median)>(Median-Q1)]_, indicating right skewness.
+
+```{r}
+library(ggplot2)
+ggplot(Machinery_T, aes(Tractor_Power, Average_Purchase_Price)) + geom_point()
+correlation<- cor(Machinery_T$Tractor_Power, Machinery_T$Average_Purchase_Price)
+print(correlation)
+```
+In this case, we observe that larger _Tractor power_ is linked to higher _Average purchase prices_.
+In conclusion, there is a moderately strong positive relationship between the average purchase price and tractor power.
+
+##### b.
+```{r}
+Model_1 <- lm(Average_Purchase_Price ~ Tractor_Power, data = Machinery_T)
+summary(Model_1)
+```
+
+**Model 1:** Average_Purchase_Price = -203953 + 14328(Tractor_Power)
+
+Since the Intercept does not make sense, lets subtract the mean from both the response variable and the independent variable
+```{r}
+Normalized_average_purchase_price<- Machinery_T$Average_Purchase_Price - mean(Machinery_T$Average_Purchase_Price)
+Normalized_tractor_power<- Machinery_T$Tractor_Power- mean(Machinery_T$Tractor_Power)
+Model_1a<- lm(Normalized_average_purchase_price~Normalized_tractor_power, data= Machinery_T)
+summary(Model_1a)
+coef(summary(Model_1a))
+```
+
+**Model 1a:**
+```{r}
+intercept <- coef(Model_1a)[1]
+slope <- coef(Model_1a)[2]
+
+cat("Estimated Regression Line Equation is given by: (y)i =", round(intercept, 8), "+", round(slope, 8), "* x\n")
+```
+
+ Average_Purchase_Price = -3.991e-11 + 1.433e+04 (Tractor_Power)
+
+##### **Interpretation of β1**
+The coefficient for the Tractor_Power variable is 1.432759e+04 (approximately 14,327.59).The _Average purchase price_ will increase by R14,327.59 when _Tractor power_ is increased by 1 KW.
+
+### Assumpitions of the linear regression 
+```{r}
+# Obtain the fitted values and residuals
+fitted_values <- fitted(Model_1)
+residuals <- residuals(Model_1)
+# Create the residual vs fitted values plot to assess the assumption of the constant varience of the residual
+plot(fitted_values, residuals, xlab = "Fitted Values", ylab = "Residuals", main = "Residual vs Fitted Values Plot")
+abline(h = 0, col = "red")
+```
+
+**Linearity assessment:**
+since the residuals are randomly scattered around the horizontal line at zero, it suggests that the linear regression mode_1 captures the linear relationship between the predictors and the response variable reasonably well. This indicates that the assumption of linearity is met.
+
+**Homoscedasticity/ constant Variance assessment:**
+In the residual vs fitted values plot, we see a random scatter of points with approximately equal spread above and below zero. This indicates that the variance of the residuals is consistent across the range of fitted values/ predictor variables.
+
+**Independence of errors assessment:**
+Observing from the Residual vs Fitted Values Plot, the error of one observation does not influence or correlate with the errors of other observations, this implies that each observation contributes unique information to the model and that the estimates of the regression coefficients are unbiased. There the assumption of independent errors is met.
+
+ Obtaining the standardized residuals for normality assumption assessment:
+```{r}
+std_resid <- rstandard(Model_1)
+# Create the Normal Q-Q plot
+qqnorm(std_resid, xlab = "Theoretical Quantiles", ylab = "Standardized Residuals", main = "Normal Q-Q Plot")
+qqline(std_resid) 
+```
+
+**Normality Assessment**
+By examining the Normal Q-Q plot, we notice that the data points deviate from the expected regression line, indicating a violation of the normality assumption.
+
+##### c.
+ **Note:**since the Normality assumption is violated, we now need to transform the data using log transformation.
+```{r}
+# Create the new variable logAverage_Purchase_Price
+Machinery_T$logAverage_Purchase_Price <- log(Machinery_T$Average_Purchase_Price)
+print(Machinery_T$logAverage_Purchase_Price)
+#Fitting the model
+Model_2 <- lm(logAverage_Purchase_Price ~ Tractor_Power, data = Machinery_T)
+summary(Model_2)
+coef(summary(Model_2))
+```
+
+```{r}
+intercept <- coef(Model_2)[1]
+slope <- coef(Model_2)[2]
+
+
+cat("Estimated Regression Line Equation is given by log(y)i =", round(intercept, 8), "+", round(slope, 8), "* x\n")
+```
+alterbatively:
+_logAverage_Purchase_Price= 11.91884732 + 0.02370773(Tractor_Power)_
+
+
+##### d.
+The logAverage_purchse_price chances by R0.02370773 when tractor power increase by 1kw.
+
+##### e.
+As Tractor_Power increases by 1, the logAverage_Purchase_Price changes by 
+log(Y)i= 11.91884732 + 0.02370773(1)= 11.94255505 .
+ 
+Therefore, Avarage_purchase_price changes by exp(11.94255505)=R153668.8206 when, tractor power is increase by 1 WK.
+
+##### f.
+```{r}
+# Obtain the fitted values and residuals
+fitted_values <- fitted(Model_2)
+residuals <- residuals(Model_2)
+# Create the residual vs fitted values plot to assess the assumption of the constant varience of the residual
+plot(fitted_values, residuals, xlab = "Fitted Values", ylab = "Residuals", main = "Residual vs Fitted Values Plot")
+abline(h = 0, col = "red")
+```
+
+```{r}
+# Obtain the standardized residuals for normality assumption assessment
+std_resid <- rstandard(Model_2)
+# Create the Normal Q-Q plot
+qqnorm(std_resid, xlab = "Theoretical Quantiles", ylab = "Standardized Residuals", main = "Normal Q-Q Plot")
+qqline(std_resid) 
+```
+**Linearity assessment:**
+since the residuals are randomly scattered around the horizontal line at zero, it suggests that the linear regression mode_1 captures the linear relationship between the predictors and the response variable reasonably well. This indicates that the assumption of linearity is met.
+
+**Homoscedasticity/ constant Variance assessment:**
+In the residual vs fitted values plot, we see a random scatter of points with approximately equal spread above and below zero. This indicates that the variance of the residuals is consistent across the range of fitted values/ predictor variables.
+
+**Independence of errors assessment:**
+Observing from the Residual vs Fitted Values Plot, the error of one observation does not influence or correlate with the errors of other observations, this implies that each observation contributes unique information to the model and that the estimates of the regression coefficients are unbiased. There the assumption of independent errors is met.
+
+**Normality assessment:**
+By examining the Normal Q-Q plot,  we observe that the data points adhere closely to the expected regression line, suggesting that the assumption of normality is met.
+
+**Therefore As the diagnostic plots shows, the linear least square regression (LLSR) assumptions are satisfied in Model_2, however is seems that the presence of extreme large values may affect the constant variance assumption.**
+
+##### g.
+
+
+```{r}
+as.factor(Machinery_T$Tractor_Types_dummy)
+Model3<- lm(Machinery_T$Average_Purchase_Price~ Machinery_T$Tractor_Power + Machinery_T$Tractor_Types_dummy)
+summary(Model3)
+coef(Model3)
+```
+Since the Intercept does not make sense, perform log transformation
+
+```{r}
+Machinery_T$Average_Purchase_Price_a <- Machinery_T$Average_Purchase_Price - mean(Machinery_T$Average_Purchase_Price)
+Machinery_T$Tractor_Power_a <- Machinery_T$Tractor_Power - mean(Machinery_T$Tractor_Power)
+Machinery_T$Tractor_Types_dummy_1_a <- Machinery_T$Tractor_Types_dummy - mean(Machinery_T$Tractor_Types_dummy)
+Model_3a <- lm(Average_Purchase_Price_a ~Tractor_Power_a + Machinery_T$Tractor_Types_dummy_1_a , data = Machinery_T)
+summary(Model_3a)
+```
+
+```{r}
+intercept <- coef(Model_3a)[1]
+slope <- coef(Model_3a)[2]
+slope1 <- coef(Model_3a)[3]
+
+cat("Estimated Regression Line Equation is given y =", round(intercept, 8), "+", round(slope, 8),"* x1\n",round(slope1, 8), "*x2\n")
+```
+After transformation
+**_logAverage purchase price =  12.02521304  -0.10018694(Tractor power)-0.06511666(Type_Tractor2 WD) +  0.67632980(Fuel_Usage )_**
+
+
+### **Interpretation** 
+##### Model 3a:
+ **Intercept**: The Average purchase price will remain at R11.97352110 when the tractor has no power and is of no type.
+ 
+**β1**: Holding constant the effect of type_tractor, the Average purchase price is expected to increase by R0.02303219 when tractor power is increased by 1KW
+
+**β2**:Holding constant the effect of tractor power, the Average purchase price is expected to decrease by 
+R0.04502728 when type of a tractor is "2 WD"
+
+##### h.
+```{r}
+# Obtain the standardized residuals for normality assumption assessment
+std_resid <- rstandard(Model_3)
+# Create the Normal Q-Q plot
+qqnorm(std_resid, xlab = "Theoretical Quantiles", ylab = "Standardized Residuals", main = "Normal Q-Q Plot")
+qqline(std_resid) 
+```
+```{r}
+# Obtain the fitted values and residuals
+fitted_values <- fitted(Model_3)
+residuals <- residuals(Model_3)
+# Create the residual vs fitted values plot to assess the assumption of the constant varience of the residual
+plot(fitted_values, residuals, xlab = "Fitted Values", ylab = "Residuals", main = "Residual vs Fitted Values Plot")
+abline(h = 0, col = "red")
+```
+**Linearity assessment:**
+since the residuals are randomly scattered around the horizontal line at zero, it suggests that the linear regression mode_1 captures the linear relationship between the predictors and the response variable reasonably well. This indicates that the assumption of linearity is met.
+
+**Homoscedasticity/ constant Variance assessment:**
+In the residual vs fitted values plot, we see a random scatter of points with approximately equal spread above and below zero. This indicates that the variance of the residuals is consistent across the range of fitted values/ predictor variables.
+
+**Independence of errors assessment:**
+Observing from the Residual vs Fitted Values Plot, the error of one observation does not influence or correlate with the errors of other observations, this implies that each observation contributes unique information to the model and that the estimates of the regression coefficients are unbiased. There the assumption of independent errors is met.
+
+**Normality Assessment**
+By examining the Normal Q-Q plot, we notice that the data points deviate from the expected regression line, indicating a violation of the normality assumption.
+
+**Therefore As the diagnostic plots shows, not all linear least square regression (LLSR) assumptions are satisfied in Model_3, however is seems that the presence of extreme large values affect the constant variance assumption.**
+
+
+
+
+##### i.
+```{r}
+variables <- c("Average_Purchase_Price", "Fuel_Usage", "Salvage_Value", "Average_Investment", "Depreciation_Costs", "Insurance_Licence_Costs", "Interest_Costs", "Repair_Maintenance_Costs")
+correlation_matrix <- cor(Machinery_T[, variables])
+cor(Machinery_T[, variables])
+```
+
+Average_Purchase_Price is highly/perfectly correlated (approximately 1.0) with Salvage_Value, Average_Investment, Depreciation_Costs, Insurance_Licence_Costs, Interest_Costs, and Repair_Maintenance_Costs. This high correlation indicates a strong linear relationship between these variables.
+
+Fuel_Usage is moderately correlated (around 0.65) with Average_Purchase_Price, Salvage_Value, Average_Investment, Depreciation_Costs, Insurance_Licence_Costs, Interest_Costs, and Repair_Maintenance_Costs. This suggests a moderate linear relationship between Fuel_Usage and the other variables.
+
+Based on the correlation matrix, if we want to add an explanatory variable to Model 3 to potentially increase the adjusted R-squared value, we should consider Fuel_Usage. It shows a moderate correlation with the target variable (Average_Purchase_Price) and other independent variables.
+
+```{r}
+Model_4<-lm(Machinery_T$Average_Purchase_Price ~ Machinery_T$Tractor_Power + dummy_variables + Machinery_T$Fuel_Usage, data = Machinery_T)
+summary(Model_4)
+```
+```{r}
+#Normalizing Model4
+Machinery_T$Average_Purchase_Price_b <- Machinery_T$Average_Purchase_Price - mean(Machinery_T$Average_Purchase_Price)
+Machinery_T$Tractor_Power_b <- Machinery_T$Tractor_Power - mean(Machinery_T$Tractor_Power)
+Machinery_T$Tractor_Types_dummy_1_b <- Machinery_T$Tractor_Types_dummy - mean(Machinery_T$Tractor_Types_dummy)
+Machinery_T$Fuel_Usage_b<- Machinery_T$Fuel_Usage -mean(Machinery_T$Fuel_Usage)
+Model_4a <- lm(Average_Purchase_Price_a ~Tractor_Power_a + Machinery_T$Tractor_Types_dummy_1_a , data = Machinery_T)
+summary(Model_4a)
+```
+
+
+```{r}
+intercept <- coef(Model_4a)[1]
+slope <- coef(Model_4a)[2]
+slope1 <- coef(Model_4a)[3]
+
+cat("Estimated Regression Line Equation is given y =", round(intercept, 8), "+", round(slope, 8),"* x1\n", "+",round(slope1, 8), "*x2\n")
+```
+
+
+From the perspective of LLSR assumptions, adding _Fuel_Usage_ to the model can be justified as long as it satisfies the assumptions of linearity, independence, homoscedasticity, normality, and no multicollinearity. While we cannot assess these assumptions solely based on the correlation matrix, evaluating them with appropriate diagnostic tests and analysis of the model residuals would be necessary.
+
+
+**Note:** It's important to note that correlation alone does not guarantee a better model fit or higher adjusted R-squared value. Adding variables should be done cautiously, considering the theoretical relationship, domain knowledge, and statistical significance to ensure the model's interpretability and accuracy.
+
+
+
+

@@ -1,0 +1,280 @@
+---
+title: "STA4813 Assignment 01"
+author: "22692037_Tshepiso Mashiane"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  #pdf_document: default
+---
+
+#Loading the Data
+```{r}
+library(readr)
+Machinery_T <- read.csv("C:/Users/36076724/Downloads/Machinery_T.csv")
+summary(Machinery_T)
+head(Machinery_T)
+tail(Machinery_T)
+plot(Machinery_T)
+```
+
+#Exemine the Data
+```{r}
+str(Machinery_T)
+summary(Machinery_T)
+```
+#a. Constructing appropriate graphs and calculating appropriate summary statistics of both
+#Average_Purchase_Price and Tractor_Power individually and then together. 
+# plot the Histogram,Box plot and scatter plot
+```{r}
+library(gridExtra)
+library(ggplot2)
+library(dplyr)
+# Average purchase price Histogram
+average_purchace_price_hist<- ggplot(data=Machinery_T, aes(x=Average_Purchase_Price)) +
+geom_histogram(binwidth = 100000, fill= "skyblue",color= "black") +
+xlab("Average_Purchase_Price") + ylab("frequency") + labs(title = "(Figure 1(a) Histogram of Average_Purchase_Price )")
+print(average_purchace_price_hist)
+
+# Box plot of Average_Purchase_Price
+average_purchase_box <- ggplot(data=Machinery_T, aes(y = Average_Purchase_Price)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(y = "Average Purchase Price (R)") +
+  ggtitle("Figure 1(b) Box Plot of Average Purchase Price")
+print(average_purchase_box)
+
+# Tractor_power Histogram
+Tractor_power_hist <- ggplot(data = Machinery_T, aes(x = Tractor_Power)) +
+  geom_histogram(binwidth = 5,  fill= "skyblue",color= "black") +
+  xlab("Tractor Power") + ylab("Frequency") + labs(title = "(Figure 2(a) Histogram Tractor Power)")
+print(Tractor_power_hist)
+
+
+# Box plot of Tractor_Power
+tractor_power_box <- ggplot(Machinery_T, aes(y = Tractor_Power)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(y = "Tractor Power (kW)") +
+  ggtitle("Figure 2(b) Box Plot of Tractor Power")
+print(tractor_power_box)
+
+#Calculate the Correlation between Tractor_Power and Average_Purchase_Price
+correlation <- cor(Machinery_T$Average_Purchase_Price, Machinery_T$Tractor_Power)
+print(correlation)
+
+
+#library(ggplot2)
+# Create a combined scatter plot
+combined_plot <- ggplot(Machinery_T, aes(x = Tractor_Power, y = Average_Purchase_Price)) +
+  geom_point(color = "black") +
+  labs(x = "Tractor Power (kW)", y = "Average Purchase Price (R)") +
+  ggtitle("Combined Scatter Plot")
+print(combined_plot)
+```
+#b.Fitting a simple linear regression model with Average_Purchase_Price as the response variable
+#and Tractor_Power as the explanatory variable (Model 1).Also Interpreting the estimate slope coefficient
+#β1.
+# Fit a simple linear regression model
+```{r}
+Model_1 <- lm(Average_Purchase_Price ~ Tractor_Power, data = Machinery_T)
+#summary(model_1)
+summary(Model_1)
+##need to interprete the slope
+
+coef(summary(Model_1))
+cat(" R squared= ",summary(Model_1)$r.squared, "\n",
+    "Residual Standart Error= ",summary(Model_1)$sigma)
+
+#Since the Intercept does not make sense, let subtract the mean from both the response variable and the independent variable
+Machinery_T$Average_Purchase_Price<- Machinery_T$Average_Purchase_Price - mean(Machinery_T$Average_Purchase_Price)
+Machinery_T$Tractor_Power<- Machinery_T$Tractor_Power- mean(Machinery_T$Tractor_Power)
+Model_1a<- lm(Average_Purchase_Price~Tractor_Power, data= Machinery_T)
+summary(Model_1a)
+coef(summary(Model_1a))
+
+#Are all assumptions of the linear regression of the met by the data?
+# Obtain the fitted values and residuals
+fitted_values <- fitted(Model_1)
+residuals <- residuals(Model_1)
+# Create the residual vs fitted values plot to assess the assumption of the constant varience of the residual
+plot(fitted_values, residuals, xlab = "Fitted Values", ylab = "Residuals", main = "Residual vs Fitted Values Plot")
+
+##Linearity assessment:
+#since the residuals are randomly scattered around the horizontal line at zero, it suggests that the linear regression mode_1 captures the linear relationship between the predictors and the response variable reasonably well. This indicates that the assumption of linearity is met.
+
+##Homoscedasticity assessment:
+#In the residual vs fitted values plot, we see a random scatter of points with approximately equal spread above and below zero. This indicates that the variance of the residuals is consistent across the range of fitted values/ predictor variables.
+
+# Obtain the standardized residuals for normality assumption assessment
+std_resid <- rstandard(Model_1)
+# Create the Normal Q-Q plot
+qqnorm(std_resid, xlab = "Theoretical Quantiles", ylab = "Standardized Residuals", main = "Normal Q-Q Plot")
+qqline(std_resid)  
+
+##since there is deviation from the line this indicate departures from normality, such as skewness or heavy tails.
+
+```
+
+
+# c.Creating a new variable logAverage_Purchase_Price, the natural log of Average_Purchase_Price and
+#Fitting Model 2 where logAverage_Purchase_Price is now the response variable and Tractor_Power
+#is still the explanatory variable. Also showing the estimated regression line equation.
+```{r}
+#since the Normality assumption is violated, we now need to transform the data.
+# Create the new variable logAverage_Purchase_Price
+Machinery_T$logAverage_Purchase_Price <- log(Machinery_T$Average_Purchase_Price)
+#Fitting the model
+Model_2 <- lm(logAverage_Purchase_Price ~ Tractor_Power, data = Machinery_T)
+summary(Model_2)
+
+coef(summary(Model_2))
+cat(" R squared= ",summary(Model_2)$r.squared, "\n",
+    "Residual Standart Error= ",summary(Model_2)$sigma)
+#Since the Intercept does not make sense, let subtract the mean from both the response variable and the independent variable
+#Machinery_T$logAverage_Purchase_Price<- Machinery_T$logAverage_Purchase_Price - mean(Machinery_T$logAverage_Purchase_Price)
+#Machinery_T$Tractor_Power<- Machinery_T$Tractor_Power- mean(Machinery_T$Tractor_Power)
+#Model_2a<- lm(Average_Purchase_Price~Tractor_Power, data= Machinery_T)
+#summary(Model_2a)
+#coef(summary(Model_2a))
+
+####I am failing to pribt the fitted model!!~
+
+```
+#d.checking How does logAverage_Purchase_Price change when Tractor_Power increases by 1?
+```{r}
+#relating to the fitted model on c, The logAverage_purchse_price chances by R0.07888 when tractor power increase by 1
+
+```
+
+#e.
+```{r}
+#As Tractor_Power increases by 1, the logAverage_Purchase_Price changes by
+#  log(Y)i= 10.96500600 + 0.07888368(1)=8 11.04388968
+# therefore, Avarage_purchase_price by R57815.14242
+#which is the exp(10.96500600)
+```
+#f.Are linear least squares regression (LLSR) assumptions satisfied in Model 2? Why or why
+#not?
+```{r}
+# Obtain the fitted values and residuals
+fitted_values <- fitted(Model_2)
+residuals <- residuals(Model_2)
+# Create the residual vs fitted values plot to assess the assumption of the constant varience of the residual
+plot(fitted_values, residuals, xlab = "Fitted Values", ylab = "Residuals", main = "Residual vs Fitted Values Plot")
+##Linearity assessment:
+#since the residuals are randomly scattered around the horizontal line at zero, it suggests that the linear regression mode_1 captures the linear relationship between the predictors and the response variable reasonably well. This indicates that the assumption of linearity is met.
+
+##Homoscedasticity assessment:
+#In the residual vs fitted values plot, we see a random scatter of points with approximately equal spread above and below zero. This indicates that the variance of the residuals is consistent across the range of fitted values/ predictor variables.
+
+# Obtain the standardized residuals for normality assumption assessment
+std_resid <- rstandard(Model_2)
+# Create the Normal Q-Q plot
+qqnorm(std_resid, xlab = "Theoretical Quantiles", ylab = "Standardized Residuals", main = "Normal Q-Q Plot")
+qqline(std_resid) 
+
+###By examining the points on the Q-Q plot, we see that they closely follow the reference line,then this suggests that the residuals are approximately normally distributed.
+
+#ANS:therefore As the diagnostic plots shows, the linear least square regression (LLSR) assumptions are satisfied in Model_2, however is seems that the presence of extreme large values may affect the constant varience assupmtion.
+
+```
+
+#g.Fit Model 3 with Average_Purchase_Price as the response and Tractor_Power and Type_Tractor
+#as predictors or explanatory variables. Write down the estimated regression line equation and
+#interpret all the regression coefficients in the fitted model.
+```{r}
+# Fit Model 3: Average_Purchase_Price ~ Tractor_Power + Type_Tractor
+
+#Model_3 <- lm(Average_Purchase_Price ~ Tractor_Power + Type_Tractor, data = Machinery_T)
+#summary(Model_3)
+
+```{r}
+# Create dummy variables for Type_Tractor
+Machinery_T$dummy_variables <- model.matrix(~ Type_Tractor - 1, data =Machinery_T )
+print(Machinery_T$dummy_variables)
+# Combine the dummy variables with the original dataset
+ Model_3data<- cbind(Machinery_T, Machinery_T$dummy_variables)
+summary(Model_3data)
+
+# Fit Model 3: Average_Purchase_Price ~ Tractor_Power + Type_Tractor
+Model_3 <- lm(Average_Purchase_Price ~ Tractor_Power + Machinery_T$dummy_variables , data =Model_3data )
+summary(Model_3)
+
+coef(summary(Model_3))
+```
+
+```{r}
+as.factor(Machinery_T$Tractor_Types_dummy)
+Model3<- lm(Machinery_T$Average_Purchase_Price~ Machinery_T$Tractor_Power + Machinery_T$Tractor_Types_dummy)
+summary(Model3)
+coef(Model3)
+```
+```{r}
+#Normalizing model 3 by Log  transformation
+# introduce log
+Machinery_T$logAverage_Purchase_Price_1 <- log(Machinery_T$Average_Purchase_Price)
+print(Machinery_T$logAverage_Purchase_Price)
+#Fitting the model
+Model_3a <- lm(logAverage_Purchase_Price ~ Tractor_Power+dummy_variables, data = Machinery_T)
+#summary(Model_3a)
+coef(summary(Model_3a))
+```
+
+
+
+
+
+
+
+
+Machinery_T$Type_Tractor<- as.character(Machinery_T$Type_Tractor)
+
+Model_3 <- lm(Average_Purchase_Price ~ Tractor_Power + as.factor(Type_Tractor), data = Machinery_T)
+summary(Model_3)
+
+#Since the Intercept does not make sense, let subtract the mean from both the response variable and the independent variable
+#Machinery_T$Average_Purchase_Price<- Machinery_T$Average_Purchase_Price - mean(Machinery_T$Average_Purchase_Price)
+#Machinery_T$Tractor_Power<- Machinery_T$Tractor_Power- mean(Machinery_T$Tractor_Power)
+#Machinery_T$Type_Tractor<-Machinery_T$Type_Tractor-mean(Machinery_T$Type_Tractor)
+#Model_3<- lm(Average_Purchase_Price~Tractor_Power+Type_Tractor, data= Machinery_T)
+#summary(Model_3)
+#coef(summary(Model_3))
+```
+# h.To determine whether the assumptions of linear least squares regression (LLSR) are satisfied in Model 3, we need to assess several assumptions. Here are the key assumptions and their evaluation for Model 3:
+```{r}
+Linearity: The assumption of linearity assumes that the relationship between the dependent variable and the independent variables is linear. This assumption is met in Model 3 because the regression equation is linear in the coefficients.
+
+Independence: The independence assumption assumes that the observations in the dataset are independent of each other. To assess this assumption, we need more information about the data collection process and whether any dependencies or clustering exist within the data. Without that information, we cannot definitively determine if the independence assumption is satisfied.
+
+Homoscedasticity: Homoscedasticity assumes that the residuals have constant variance across all levels of the independent variables. To evaluate this assumption, we can examine the residuals versus fitted values plot. If the plot exhibits a consistent spread of residuals around zero across the range of fitted values, the assumption is likely satisfied. However, without access to the data or the residuals, we cannot assess this assumption.
+
+Normality: The normality assumption assumes that the residuals are normally distributed. We can examine the histogram or a QQ plot of the residuals to assess this assumption. If the residuals are approximately normally distributed, the assumption is likely met. However, without access to the residuals, we cannot evaluate this assumption.
+
+No multicollinearity: The assumption of no multicollinearity assumes that there is no perfect linear relationship between the independent variables. In Model 3, there is evidence of perfect multicollinearity or singularity based on the NA values in the coefficient estimates. This violates the assumption of no multicollinearity.
+
+In summary, without access to the data, residuals, or additional information about the data collection process, it is difficult to definitively determine whether all the assumptions of LLSR are satisfied in Model 3. However, based on the information provided, there is evidence of perfect multicollinearity, which violates the assumption of no multicollinearity.
+```
+
+
+# i.
+```{r}
+# Assuming you have a data frame called 'data' containing the variables
+variables <- c("Average_Purchase_Price", "Fuel_Usage", "Salvage_Value", "Average_Investment", "Depreciation_Costs", "Insurance_Licence_Costs", "Interest_Costs", "Repair_Maintenance_Costs")
+correlation_matrix <- cor(Machinery_T[, variables])
+cor(Machinery_T[, variables])
+
+
+
+##ANS:Looking at the correlation matrix , we can observe the following:
+
+Average_Purchase_Price is highly correlated (approximately 1.0) with Salvage_Value, Average_Investment, Depreciation_Costs, Insurance_Licence_Costs, Interest_Costs, and Repair_Maintenance_Costs. This high correlation indicates a strong linear relationship between these variables.
+
+Fuel_Usage is moderately correlated (around 0.65) with Average_Purchase_Price, Salvage_Value, Average_Investment, Depreciation_Costs, Insurance_Licence_Costs, Interest_Costs, and Repair_Maintenance_Costs. This suggests a moderate linear relationship between Fuel_Usage and the other variables.
+
+Based on the correlation matrix, if we want to add an explanatory variable to Model 3 to potentially increase the adjusted R-squared value, we should consider Fuel_Usage. It shows a moderate correlation with the target variable (Average_Purchase_Price) and other independent variables.
+
+From the perspective of LLSR assumptions, adding Fuel_Usage to the model can be justified as long as it satisfies the assumptions of linearity, independence, homoscedasticity, normality, and no multicollinearity. While we cannot assess these assumptions solely based on the correlation matrix, evaluating them with appropriate diagnostic tests and analysis of the model residuals would be necessary.
+
+It's important to note that correlation alone does not guarantee a better model fit or higher adjusted R-squared value. Adding variables should be done cautiously, considering the theoretical relationship, domain knowledge, and statistical significance to ensure the model's interpretability and accuracy.
+
+```
+
+

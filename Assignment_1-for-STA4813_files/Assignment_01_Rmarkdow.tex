@@ -1,0 +1,211 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={STA4813 Assignment 01},
+  pdfauthor={22692037\_Tshepiso Mashiane},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{STA4813 Assignment 01}
+\author{22692037\_Tshepiso Mashiane}
+\date{2024-04-08}
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(readr)}
+\NormalTok{Machinery\_T }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"C:/Users/36076724/Downloads/Machinery\_T.csv"}\NormalTok{)}
+\NormalTok{Machinery\_T}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Tractor_Power Type_Tractor Type_Fruit Average_Purchase_Price Salvage_Value
+## 1             48         2 WD   Vineyard                 494800         49480
+## 2             36         2 WD   Orchards                 344400         34440
+## 3             44         2 WD   Orchards                 433750         43375
+## 4             48         2 WD   Orchards                 412902         41290
+## 5             51         2 WD   Orchards                 573500         57350
+## 6             52         2 WD   Orchards                 350625         35063
+## 7             53         2 WD   Orchards                 460200         46020
+## 8             56         2 WD   Orchards                 847768         84777
+## 9             57         2 WD   Orchards                 604950         60495
+## 10            59         2 WD   Orchards                 478500         47850
+## 11            60         2 WD   Orchards                 611000         61100
+## 12            48         4 WD   Vineyard                 536000         53600
+## 13            36         4 WD   Orchards                 359350         35935
+## 14            44         4 WD   Orchards                 483750         48375
+## 15            48         4 WD   Orchards                 470607         47061
+## 16            51         4 WD   Orchards                 652000         65200
+## 17            52         4 WD   Orchards                 415938         41594
+## 18            53         4 WD   Orchards                 472767         47277
+## 19            56         4 WD   Orchards                 911397         91140
+## 20            57         4 WD   Orchards                 666550         66655
+## 21            58         4 WD   Orchards                 266650         26665
+## 22            59         4 WD   Orchards                 526400         52640
+## 23            60         4 WD   Orchards                 698000         69800
+## 24            64         4 WD   Orchards                 598750         59875
+## 25            65         4 WD   Orchards                 611680         61168
+## 26            66         4 WD   Orchards                1171456        117146
+## 27            71         4 WD   Orchards                 843250         84325
+##    Average_Investment Depreciation_Costs Insurance_Licence_Costs Interest_Costs
+## 1              222660              44.53                    2.23          28.95
+## 2              154980              31.00                    1.55          20.15
+## 3              195188              39.04                    1.95          25.37
+## 4              185806              37.16                    1.86          24.15
+## 5              258075              51.62                    2.58          33.55
+## 6              157781              31.56                    1.58          20.51
+## 7              207090              41.42                    2.07          26.92
+## 8              381496              76.30                    3.81          49.59
+## 9              272228              54.45                    2.72          35.39
+## 10             215325              43.07                    2.15          27.99
+## 11             274950              54.99                    2.75          35.74
+## 12             241200              48.24                    2.41          31.36
+## 13             161708              32.34                    1.62          21.02
+## 14             217688              43.54                    2.18          28.30
+## 15             211773              42.35                    2.12          27.53
+## 16             293400              58.68                    2.93          38.14
+## 17             187172              37.43                    1.87          24.33
+## 18             212745              42.55                    2.13          27.66
+## 19             410129              82.03                    4.10          53.32
+## 20             299948              59.99                    3.00          38.99
+## 21             119993              24.00                    1.20          15.60
+## 22             236880              47.38                    2.37          30.79
+## 23             314100              62.82                    3.14          40.83
+## 24             269438              53.89                    2.69          35.03
+## 25             275256              55.05                    2.75          35.78
+## 26             527155             105.43                    5.27          68.53
+## 27             379463              75.89                    3.79          49.33
+##    Total_Fixed_Costs Repair_Maintenance_Costs Fuel_Costs Fuel_Usage
+## 1              46.76                    59.38     181.53       8.64
+## 2              32.55                    41.33     136.14       6.48
+## 3              40.99                    52.05     166.40       7.92
+## 4              39.02                    49.55     181.53       8.64
+## 5              54.20                    68.82     192.87       9.18
+## 6              33.13                    42.08     196.65       9.36
+## 7              43.49                    55.22     200.44       9.54
+## 8              80.11                   101.73     211.78      10.80
+## 9              57.17                    72.59     215.56      10.26
+## 10             45.22                    57.42     223.13      10.62
+## 11             57.74                    73.32     226.91      10.80
+## 12             50.65                    64.32     181.53       8.64
+## 13             33.96                    43.12     136.14       6.48
+## 14             45.71                    58.05     166.40       7.92
+## 15             44.47                    56.47     181.53       8.64
+## 16             61.61                    78.24     192.87       9.18
+## 17             39.31                    49.91     196.65       9.36
+## 18             44.68                    56.73     200.44       9.54
+## 19             86.13                   109.37     211.78      10.80
+## 20             62.99                    79.99     215.56      10.26
+## 21             25.20                    32.00     219.34      10.44
+## 22             49.74                    63.17     223.13      10.62
+## 23             65.96                    83.76     226.91      10.80
+## 24             56.58                    71.85     242.04      11.52
+## 25             57.80                    73.40     245.82      11.70
+## 26            110.70                   140.57     249.60      11.88
+## 27             79.69                   101.19     268.51      12.78
+\end{verbatim}
+
+\end{document}
